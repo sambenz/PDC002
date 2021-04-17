@@ -50,9 +50,7 @@ for x in trace:
     cmd = data[8]
     end = 10 + data[9]
     payload = data[10:end]
-    if cmd == 9:
-      print(data[10:12])
-    #print(t[1] + " " + command(cmd) + " " + str(payload))
+    print(t[1] + " " + command(cmd) + " (" + str(data[9]) + ") " + str(payload))
 
 # firmware from write
 firmware_write = []
@@ -83,10 +81,11 @@ for x in trace:
         firmware_read.append(payload[:24]) # -> firmware
 
 if firmware_read == firmware_write:
-  f = open("firmware/" + file + ".raw", "w")
-  for l in firmware_read:
-    f.write(str(l[0]))
-    for i in range(1,len(l)):
-      f.write(" " + str(l[i]))
-    f.write("\n")
-  f.close()
+  print("firmware validated")
+  #f = open("firmware/" + file + ".raw", "w")
+  #for l in firmware_read:
+  #  f.write(str(l[0]))
+  #  for i in range(1,len(l)):
+  #    f.write(" " + str(l[i]))
+  #  f.write("\n")
+  #f.close()
