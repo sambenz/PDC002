@@ -32,13 +32,13 @@ def command(cmd):
   elif int(cmd) == 9:
     return "WRITE"
   elif int(cmd) == 11:
-    return "READ"
+    return "READ"  # read
   elif int(cmd) == 8:
     return "DELETE"
   elif int(cmd) == 23:
     return "RESET"
   elif int(cmd) == 10:
-    return "INFO"
+    return "INFO"  # read
   else:
     return str(cmd)
 
@@ -50,7 +50,13 @@ for x in trace:
     cmd = data[8]
     end = 10 + data[9]
     payload = data[10:end]
-    print(t[1] + " " + command(cmd) + " (" + str(data[9]) + ") " + str(payload))
+    if cmd == 10 and len(payload) == 52:
+      print(t[1] + " " + command(cmd) + " (" + str(data[9]) + ") " + str(payload))
+    elif cmd == 10 and len(payload) == 15:
+      name = ""
+      print("IN INFO " + name.join([chr(c) for c in payload]))
+    else:
+      print(t[1] + " " + command(cmd) + " (" + str(data[9]) + ") " + str(payload))
 
 # firmware from write
 firmware_write = []

@@ -36,7 +36,10 @@ class PDC002:
     msg[7] = int(rel * 1000000) & 0XFF
     # command, size (2 bytes)
     msg[8] = command
-    msg[9] = len(payload)
+    if command == 23:  # reset command is different?
+      msg[9] = 250
+    else:
+      msg[9] = len(payload)
     o = 10
     for d in payload:  # payload
       msg[o] = d
@@ -48,7 +51,7 @@ class PDC002:
       print("OUT " + str(msg))
     self.device.write(bytearray(msg))
 
-  def read(self, count):
+  def receive(self, count):
     time.sleep(0.08)
     if count > 1:
       data = []
@@ -66,27 +69,45 @@ class PDC002:
 
   def reset(self):
     command = 23
-    payload = []
+    payload = [133, 4, 239, 56, 210, 118, 176, 156, 34, 1, 0, 0, 0, 0, 24, 49,
+               225, 0, 0, 0, 0, 0, 176, 242, 118, 0, 192, 3, 59, 117, 255, 255,
+               255, 255, 176, 242, 118, 0, 151, 50, 221, 0, 226, 4, 5, 0, 128,
+               1, 0, 0, 0, 0]  # and the size of the payload is set to 250?
     self.send(command, payload)
-    return self.read(1)
+    return self.receive(1)
 
   def startWrite(self):
     command = 5
     payload = []
     self.send(command, payload)
-    return self.read(1)
+    return self.receive(1)
 
   def endWrite(self):
     command = 4
     payload = []
     self.send(command, payload)
-    return self.read(1)
+    return self.receive(1)
 
   def progMode(self):
     command = 3
     payload = []
     self.send(command, payload)
-    return self.read(1)
+    return self.receive(1)
+
+  def readPpsName(self):
+    command = 10
+    payload = [0, 56, 0, 8, 15]
+    self.send(command, payload)
+    data = self.receive(1)[10:25]
+    name = ""
+    return name.join([chr(c) for c in data])
+
+  def readPpsModes(self):
+    command = 10
+    payload = [0, 252, 0, 8, 52]
+    self.send(command, payload)
+    data = self.receive(1)[10:62]
+    # TODO: decode https://github.com/JaCzekanski/pdc-control/blob/1db343cdd725c551d18eb0dd8e105a065344833b/src/main.cpp#L83
 
   def readFirmware(self):
     command = 11
@@ -98,7 +119,7 @@ class PDC002:
       payload[1] = addr
       addr = addr + 4
       self.send(command, payload)
-      answer = self.read(26)
+      answer = self.receive(26)
       i = 0
       while i < 25:
         data = answer[i][10:50]
@@ -169,6 +190,7 @@ def main():
     firmware_read = pdc002.readFirmware()
     if firmware_in == firmware_read:
       print("Validated.")
+    print(pdc002.readPpsName())  # shows something usable for PPS firmware
 
 
 if __name__ == "__main__":
